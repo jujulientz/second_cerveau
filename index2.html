@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nutrition</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="nutrition">
+  <header>
+    <h1>🍽️ Nutrition</h1>
+    <nav>
+      <button onclick="location.href='dashboard.html'" class="active">📊 Dashboard</button>
+      <button onclick="location.href='vie-perso.html'">📅 Vie Perso</button>
+      <button onclick="location.href='finance.html'">💰 Finance</button>
+      <button onclick="location.href='objectifs.html'">🎯 Objectifs</button>
+      <button onclick="location.href='projets.html'">🚀 Projets</button>
+      <button onclick="location.href='nutrition.html'" class="active">🍽️ Nutrition</button>
+      <button onclick="location.href='notes.html'">📝 Notes</button>
+    </nav>
+    <button onclick="logout()" class="logout">🚪 Déconnexion</button>
+  </header>
+
+  <main>
+    <!-- Profil et Objectifs -->
+    <section>
+      <h2>👤 Mon Profil Nutritionnel</h2>
+      <div class="profile-container">
+        <div class="profile-inputs">
+          <div class="input-group">
+            <label>Âge</label>
+            <input type="number" id="age" placeholder="25">
+          </div>
+          <div class="input-group">
+            <label>Poids (kg)</label>
+            <input type="number" id="weight" placeholder="70">
+          </div>
+          <div class="input-group">
+            <label>Taille (cm)</label>
+            <input type="number" id="height" placeholder="175">
+          </div>
+          <div class="input-group">
+            <label>Objectif</label>
+            <select id="goal">
+              <option value="muscle">Prise de muscle</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="fatloss">Perte de graisse</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Niveau d'activité</label>
+            <select id="activity">
+              <option value="1.2">Sédentaire</option>
+              <option value="1.375">Légèrement actif</option>
+              <option value="1.55">Modérément actif</option>
+              <option value="1.725">Très actif</option>
+              <option value="1.9">Extrêmement actif</option>
+            </select>
+          </div>
+          <button onclick="calculateGoals()" class="save">🎯 Calculer mes objectifs</button>
+        </div>
+        
+        <div class="goals-display" id="goals-display">
+          <div class="goal-card">
+            <h3>Objectifs Journaliers</h3>
+            <div class="macro-goal">
+              <span>Calories: <strong id="calorie-goal">0</strong> kcal</span>
+            </div>
+            <div class="macro-goal">
+              <span>Protéines: <strong id="protein-goal">0</strong> g</span>
+            </div>
+            <div class="macro-goal">
+              <span>Glucides: <strong id="carbs-goal">0</strong> g</span>
+            </div>
+            <div class="macro-goal">
+              <span>Lipides: <strong id="fat-goal">0</strong> g</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recherche d'aliments -->
+    <section>
+      <h2>🔍 Recherche d'Aliments</h2>
+      <div class="search-container">
+        <input type="text" id="food-search" placeholder="Rechercher un aliment (ex: pomme, poulet, riz...)">
+        <button onclick="searchFood()">🔍 Rechercher</button>
+      </div>
+      <div id="search-results" class="search-results"></div>
+    </section>
+
+    <!-- Journal alimentaire -->
+    <section>
+      <h2>📝 Journal Alimentaire du Jour</h2>
+      <div class="meal-sections">
+        <!-- Petit-déjeuner -->
+        <div class="meal-section">
+          <h3>☀️ Petit-déjeuner</h3>
+          <div id="breakfast-foods" class="foods-list"></div>
+          <button onclick="addFoodToMeal('breakfast')" class="add-btn">+ Ajouter aliment</button>
+        </div>
+
+        <!-- Encas matin -->
+        <div class="meal-section">
+          <h3>🕰️ Encas Matin</h3>
+          <div id="morning-snack-foods" class="foods-list"></div>
+          <button onclick="addFoodToMeal('morning-snack')" class="add-btn">+ Ajouter aliment</button>
+        </div>
+
+        <!-- Déjeuner -->
+        <div class="meal-section">
+          <h3>🌞 Déjeuner</h3>
+          <div id="lunch-foods" class="foods-list"></div>
+          <button onclick="addFoodToMeal('lunch')" class="add-btn">+ Ajouter aliment</button>
+        </div>
+
+        <!-- Goûter -->
+        <div class="meal-section">
+          <h3>🍎 Goûter</h3>
+          <div id="afternoon-snack-foods" class="foods-list"></div>
+          <button onclick="addFoodToMeal('afternoon-snack')" class="add-btn">+ Ajouter aliment</button>
+        </div>
+
+        <!-- Dîner -->
+        <div class="meal-section">
+          <h3>🌙 Dîner</h3>
+          <div id="dinner-foods" class="foods-list"></div>
+          <button onclick="addFoodToMeal('dinner')" class="add-btn">+ Ajouter aliment</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Activité sportive -->
+<!-- Activité sportive -->
+<!-- Activité sportive -->
+<section>
+  <h2>🏃‍♂️ Activité Sportive</h2>
+  <div class="sport-container">
+    <div class="input-group">
+      <label>Catégorie</label>
+      <select id="sport-category" onchange="updateSportActivities()">
+        <option value="all">Toutes les catégories</option>
+        <option value="cardio">🏃‍♂️ Cardio</option>
+        <option value="velo">🚴‍♂️ Vélo</option>
+        <option value="natation">🏊‍♂️ Natation</option>
+        <option value="musculation">💪 Musculation</option>
+        <option value="collectif">⚽ Sports collectifs</option>
+        <option value="raquette">🎾 Sports de raquette</option>
+        <option value="danse">💃 Danse</option>
+        <option value="martial">🥋 Arts martiaux</option>
+        <option value="autre">🎯 Autres sports</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label>Activité spécifique</label>
+      <select id="sport-type" onchange="calculateCaloriesBurned()">
+        <option value="">Choisir une activité</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label>Durée (minutes)</label>
+      <input type="number" id="sport-duration" placeholder="30" min="1" onchange="calculateCaloriesBurned()">
+    </div>
+
+    <div class="input-group">
+      <label>Calories brûlées</label>
+      <input type="number" id="sport-calories" placeholder="Calcul automatique" readonly>
+    </div>
+
+    <button onclick="addSportActivity()" class="add-btn">➕ Ajouter</button>
+  </div>
+  <div id="sport-activities" class="sport-activities"></div>
+</section>
+    <!-- Résumé et progression -->
+    <section>
+      <h2>📊 Résumé Nutritionnel</h2>
+      <div class="nutrition-summary">
+        <div class="total-calories">
+          <h3>Calories Total: <span id="total-calories-consumed">0</span> / <span id="total-calories-goal">0</span> kcal</h3>
+          <div class="progress-bar">
+            <div class="progress-fill" id="calories-progress"></div>
+          </div>
+        </div>
+        
+        <div class="macros-progress">
+          <div class="macro-progress">
+            <span>Protéines: <span id="protein-consumed">0</span>/<span id="protein-target">0</span>g</span>
+            <div class="progress-bar">
+              <div class="progress-fill" id="protein-progress"></div>
+            </div>
+          </div>
+          <div class="macro-progress">
+            <span>Glucides: <span id="carbs-consumed">0</span>/<span id="carbs-target">0</span>g</span>
+            <div class="progress-bar">
+              <div class="progress-fill" id="carbs-progress"></div>
+            </div>
+          </div>
+          <div class="macro-progress">
+            <span>Lipides: <span id="fat-consumed">0</span>/<span id="fat-target">0</span>g</span>
+            <div class="progress-bar">
+              <div class="progress-fill" id="fat-progress"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="calories-balance">
+          <h3>Balance Calorique: <span id="calories-balance">0</span> kcal</h3>
+          <p id="balance-message"></p>
+        </div>
+      </div>
+      
+    </section>
+
+    <div class="actions">
+      <button onclick="saveNutrition()" class="save">💾 Sauvegarder</button>
+      <button onclick="clearDay()" class="clear">🗑️ Effacer la journée</button>
+      <button onclick="downloadNutritionPDF()" class="download">📊 Télécharger Rapport</button>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
+<script>
+  // Mettre à jour la navigation active
+  document.addEventListener('DOMContentLoaded', function() {
+      // Retirer la classe active de tous les boutons
+      const navButtons = document.querySelectorAll('header nav button');
+      navButtons.forEach(button => {
+          button.classList.remove('active');
+      });
+      
+      // Ajouter la classe active au bouton de la page actuelle
+      const currentPage = window.location.pathname.split('/').pop();
+      let activeButton = null;
+      
+      switch(currentPage) {
+          case 'vie-perso.html':
+              activeButton = document.querySelector('header nav button[onclick*="vie-perso"]');
+              break;
+          case 'finance.html':
+              activeButton = document.querySelector('header nav button[onclick*="finance"]');
+              break;
+          case 'objectifs.html':
+              activeButton = document.querySelector('header nav button[onclick*="objectifs"]');
+              break;
+          case 'projets.html':
+              activeButton = document.querySelector('header nav button[onclick*="projets"]');
+              break;
+          case 'nutrition.html':
+              activeButton = document.querySelector('header nav button[onclick*="nutrition"]');
+              break;
+          case 'dashboard.html':
+              activeButton = document.querySelector('header nav button[onclick*="dashboard"]');
+              break;
+              case 'notes.html':
+              activeButton = document.querySelector('header nav button[onclick*="notes"]');
+              break;
+
+      }
+      
+      if (activeButton) {
+          activeButton.classList.add('active');
+      }
+  });
+  </script>
