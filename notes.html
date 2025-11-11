@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes & Agenda</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="notes">
+  <header>
+    <h1>📝 Notes & Agenda</h1>
+    <nav>
+      <button onclick="location.href='dashboard.html'">📊 Dashboard</button>
+      <button onclick="location.href='vie-perso.html'">📅 Vie Perso</button>
+      <button onclick="location.href='finance.html'">💰 Finance</button>
+      <button onclick="location.href='objectifs.html'">🎯 Objectifs</button>
+      <button onclick="location.href='projets.html'">🚀 Projets</button>
+      <button onclick="location.href='nutrition.html'">🍽️ Nutrition</button>
+      <button onclick="location.href='notes.html'" class="active">📝 Notes</button>
+    </nav>
+    <button onclick="logout()" class="logout">🚪 Déconnexion</button>
+  </header>
+
+  <main>
+    <!-- Vue d'ensemble -->
+    <section>
+      <h2>👁️ Vue d'Ensemble</h2>
+      <div class="overview-cards">
+        <div class="overview-card" onclick="loadQuickNotes()">
+          <div class="overview-icon">📋</div>
+          <div class="overview-content">
+            <h3 id="total-notes">0</h3>
+            <p>Notes Total</p>
+          </div>
+        </div>
+        <div class="overview-card" onclick="loadEvents()">
+          <div class="overview-icon">📅</div>
+          <div class="overview-content">
+            <h3 id="today-events">0</h3>
+            <p>Événements Aujourd'hui</p>
+          </div>
+        </div>
+        <div class="overview-card" onclick="loadQuickNotes()">
+          <div class="overview-icon">📝</div>
+          <div class="overview-content">
+            <h3 id="quick-notes-count">0</h3>
+            <p>Notes Rapides</p>
+          </div>
+        </div>
+        <div class="overview-card" onclick="loadEvents()">
+          <div class="overview-icon">🗓️</div>
+          <div class="overview-content">
+            <h3 id="total-events">0</h3>
+            <p>Événements Total</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Notes Rapides -->
+    <section>
+      <h2>📌 Notes Rapides</h2>
+      <div class="notes-container">
+        <div class="note-editor">
+          <textarea id="quick-note" placeholder="Écrivez votre note ici... (Ctrl+Enter pour sauvegarder)"></textarea>
+          <div class="note-actions">
+            <button onclick="addQuickNote()" class="save">💾 Sauvegarder</button>
+            <small class="help-text">Ctrl+Enter pour sauvegarder rapidement</small>
+          </div>
+        </div>
+        <div id="quick-notes-list" class="notes-list">
+          <!-- Notes rapides -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Agenda -->
+    <section>
+      <h2>📅 Agenda</h2>
+      <div class="agenda-container">
+        <div class="event-creator">
+          <div class="input-group">
+            <label>Titre de l'événement</label>
+            <input type="text" id="event-title" placeholder="Réunion, Anniversaire...">
+          </div>
+          <div class="input-group">
+            <label>Date</label>
+            <input type="date" id="event-date">
+          </div>
+          <div class="input-group">
+            <label>Heure (optionnel)</label>
+            <input type="time" id="event-time">
+          </div>
+          <div class="input-group">
+            <label>Description</label>
+            <textarea id="event-description" placeholder="Détails de l'événement..."></textarea>
+          </div>
+          <button onclick="addEvent()" class="add-btn">➕ Ajouter à l'agenda</button>
+        </div>
+        <div id="events-list" class="events-list">
+          <!-- Événements -->
+        </div>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button onclick="exportNotes()" class="export">📤 Export Notes</button>
+      <button onclick="clearAllNotes()" class="clear">🗑️ Tout effacer</button>
+    </div>
+  </main>
+
+  <script>
+// Initialisation
+function initNotesPage() {
+    console.log("📝 Initialisation de la page Notes");
+    
+    // Initialiser la date
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('event-date').value = today;
+    
+    // Charger tout
+    loadOverview();
+    loadQuickNotes();
+    loadEvents();
+    
+    console.log("✅ Notes initialisées");
+}
+
+// Chargement au démarrage
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("📄 Page Notes chargée");
+    setTimeout(initNotesPage, 100);
+});
+
+// === VUE D'ENSEMBLE ===
+function loadOverview() {
+    try {
+        const quickNotes = JSON.parse(localStorage.getItem('quickNotes') || '[]');
+        const events = JSON.parse(localStorage.getItem('agendaEvents') || '[]');
+        
+        const today = new Date().toISOString().split('T')[0];
+        const todayEvents = events.filter(event => event.date === today);
+        
+        // Mise à jour
+        document.getElementById('total-notes').textContent = quickNotes.length;
+        document.getElementById('today-events').textContent = todayEvents.length;
+        document.getElementById('quick-notes-count').textContent = quickNotes.length;
+        document.getElementById('total-events').textContent = events.length;
+    } catch (e) {
+        console.error("Erreur vue d'ensemble:", e);
+    }
+}
+
+// === NOTES RAPIDES ===
+function addQuickNote() {
+    const noteText = document.getElementById('quick-note').value.trim();
+    if (!noteText) {
+        alert('Veuillez écrire une note');
+        return;
+    }
+
+    try {
+        const notes = JSON.parse(localStorage.getItem('quickNotes') || '[]');
+        const newNote = {
+            id: Date.now(),
+            text: noteText,
+            createdAt: new Date().toISOString()
+        };
+
+        notes.unshift(newNote);
+        localStorage.setItem('quickNotes', JSON.stringify(notes));
+
+        document.getElementById('quick-note').value = '';
+        loadQuickNotes();
+        loadOverview();
+        alert('✅ Note rapide ajoutée !');
+    } catch (e) {
+        console.error("Erreur ajout note rapide:", e);
+        alert('❌ Erreur lors de l\'ajout');
+    }
+}
+
+function loadQuickNotes() {
+    const container = document.getElementById('quick-notes-list');
+    if (!container) return;
+
+    try {
+        const notes = JSON.parse(localStorage.getItem('quickNotes') || '[]');
+        
+        if (notes.length === 0) {
+            container.innerHTML = '<p class="no-data">Aucune note rapide</p>';
+            return;
+        }
+
+        container.innerHTML = notes.slice(0, 15).map(note => `
+            <div class="note-item">
+                <div class="note-content">${note.text}</div>
+                <div class="note-meta">
+                    <span class="note-date">${new Date(note.createdAt).toLocaleDateString('fr-FR')}</span>
+                    <button onclick="deleteQuickNote(${note.id})" class="delete-btn">🗑️</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        console.error("Erreur chargement notes rapides:", e);
+        container.innerHTML = '<p class="no-data">Erreur de chargement</p>';
+    }
+}
+
+function deleteQuickNote(noteId) {
+    try {
+        const notes = JSON.parse(localStorage.getItem('quickNotes') || '[]');
+        const filteredNotes = notes.filter(note => note.id !== noteId);
+        localStorage.setItem('quickNotes', JSON.stringify(filteredNotes));
+        loadQuickNotes();
+        loadOverview();
+        alert('🗑️ Note supprimée');
+    } catch (e) {
+        console.error("Erreur suppression note:", e);
+    }
+}
+
+// === AGENDA ===
+function addEvent() {
+    const title = document.getElementById('event-title').value.trim();
+    const date = document.getElementById('event-date').value;
+    const time = document.getElementById('event-time').value;
+    const description = document.getElementById('event-description').value.trim();
+
+    if (!title || !date) {
+        alert('❌ Titre et date requis');
+        return;
+    }
+
+    try {
+        const events = JSON.parse(localStorage.getItem('agendaEvents') || '[]');
+        const newEvent = {
+            id: Date.now(),
+            title,
+            date,
+            time,
+            description,
+            createdAt: new Date().toISOString()
+        };
+
+        events.push(newEvent);
+        events.sort((a, b) => new Date(a.date) - new Date(b.date));
+        localStorage.setItem('agendaEvents', JSON.stringify(events));
+
+        // Reset
+        document.getElementById('event-title').value = '';
+        document.getElementById('event-date').value = '';
+        document.getElementById('event-time').value = '';
+        document.getElementById('event-description').value = '';
+
+        loadEvents();
+        loadOverview();
+        alert('✅ Événement ajouté !');
+    } catch (e) {
+        console.error("Erreur ajout événement:", e);
+    }
+}
+
+function loadEvents() {
+    const container = document.getElementById('events-list');
+    if (!container) return;
+
+    try {
+        const events = JSON.parse(localStorage.getItem('agendaEvents') || '[]');
+        const today = new Date().toISOString().split('T')[0];
+        
+        const upcomingEvents = events.filter(event => event.date >= today);
+
+        if (upcomingEvents.length === 0) {
+            container.innerHTML = '<p class="no-data">Aucun événement à venir</p>';
+            return;
+        }
+
+        container.innerHTML = upcomingEvents.map(event => `
+            <div class="event-item ${event.date === today ? 'today' : ''}">
+                <div class="event-header">
+                    <h4>${event.title}</h4>
+                    <button onclick="deleteEvent(${event.id})" class="delete-btn">🗑️</button>
+                </div>
+                <div class="event-details">
+                    <div class="event-date-time">
+                        <span class="event-date">📅 ${new Date(event.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                        ${event.time ? `<span class="event-time">⏰ ${event.time}</span>` : ''}
+                    </div>
+                    ${event.description ? `<div class="event-description">${event.description}</div>` : ''}
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        console.error("Erreur chargement événements:", e);
+    }
+}
+
+function deleteEvent(eventId) {
+    try {
+        const events = JSON.parse(localStorage.getItem('agendaEvents') || '[]');
+        const filteredEvents = events.filter(event => event.id !== eventId);
+        localStorage.setItem('agendaEvents', JSON.stringify(filteredEvents));
+        loadEvents();
+        loadOverview();
+        alert('🗑️ Événement supprimé');
+    } catch (e) {
+        console.error("Erreur suppression événement:", e);
+    }
+}
+
+// === UTILITAIRES ===
+function exportNotes() {
+    try {
+        const quickNotes = JSON.parse(localStorage.getItem('quickNotes') || '[]');
+        const events = JSON.parse(localStorage.getItem('agendaEvents') || '[]');
+        
+        const allData = {
+            quickNotes,
+            events,
+            exportDate: new Date().toISOString()
+        };
+        
+        const dataStr = JSON.stringify(allData, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `notes_backup_${new Date().toLocaleDateString('fr-FR')}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        alert('📤 Notes exportées !');
+    } catch (e) {
+        console.error("Erreur export:", e);
+        alert('❌ Erreur lors de l\'export');
+    }
+}
+
+function clearAllNotes() {
+    if (confirm('Êtes-vous sûr de vouloir effacer TOUTES les notes et événements ?')) {
+        localStorage.removeItem('quickNotes');
+        localStorage.removeItem('agendaEvents');
+        loadQuickNotes();
+        loadEvents();
+        loadOverview();
+        alert('🗑️ Toutes les notes ont été effacées');
+    }
+}
+
+// Raccourci clavier
+document.addEventListener('DOMContentLoaded', function() {
+    const quickNoteInput = document.getElementById('quick-note');
+    if (quickNoteInput) {
+        quickNoteInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                addQuickNote();
+            }
+        });
+    }
+});
+  </script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="finance">
+  <header>
+    <h1>💰 Finance</h1>
+    <nav>
+      <button onclick="location.href='dashboard.html'" >📊 Dashboard</button>
+      <button onclick="location.href='vie-perso.html'">📅 Vie Perso</button>
+      <button onclick="location.href='finance.html'" class="active">💰 Finance</button>
+      <button onclick="location.href='objectifs.html'">🎯 Objectifs</button>
+      <button onclick="location.href='projets.html'">🚀 Projets</button>
+      <button onclick="location.href='nutrition.html'">🍽️ Nutrition</button>
+      <button onclick="location.href='notes.html'">📝 Notes</button>
+    </nav>
+    <button onclick="logout()" class="logout">🚪 Déconnexion</button>
+  </header>
+
+  <main>
+    <section>
+      <h2>💵 Revenus Mensuels</h2>
+      <div class="textarea-container">
+        <textarea id="revenus" placeholder="Listez vos revenus mensuels... (ex: Salaire: 2500€, Freelance: 500€)"></textarea>
+      </div>
+    </section>
+
+    <section>
+      <h2>💸 Dépenses du Mois</h2>
+      <div class="textarea-container">
+        <textarea id="depenses" placeholder="Détaillez vos dépenses mensuelles... (ex: Loyer: 800€, Courses: 300€)"></textarea>
+      </div>
+    </section>
+
+    <section>
+      <h2>📈 Investissements</h2>
+      <div class="textarea-container">
+        <textarea id="investissements" placeholder="Listez vos investissements et placements..."></textarea>
+      </div>
+    </section>
+
+    <section>
+      <h2>🏦 Patrimoine Net</h2>
+      <div class="textarea-container">
+        <textarea id="patrimoine" placeholder="Résumez votre situation patrimoniale..."></textarea>
+      </div>
+    </section>
+
+    <!-- Les statistiques financières seront ajoutées automatiquement par JavaScript -->
+
+    <div class="actions">
+      <button onclick="saveFinance()" class="save">💾 Sauvegarder</button>
+      <button onclick="downloadFinancePDF()" class="download">📊 Télécharger PDF</button>
+      <button onclick="exportData()" class="export">💾 Export Données</button>
+      <button onclick="showStats()" class="stats">📈 Voir Statistiques</button>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
+<script>
+  // Mettre à jour la navigation active
+  document.addEventListener('DOMContentLoaded', function() {
+      // Retirer la classe active de tous les boutons
+      const navButtons = document.querySelectorAll('header nav button');
+      navButtons.forEach(button => {
+          button.classList.remove('active');
+      });
+      
+      // Ajouter la classe active au bouton de la page actuelle
+      const currentPage = window.location.pathname.split('/').pop();
+      let activeButton = null;
+      
+      switch(currentPage) {
+          case 'vie-perso.html':
+              activeButton = document.querySelector('header nav button[onclick*="vie-perso"]');
+              break;
+          case 'finance.html':
+              activeButton = document.querySelector('header nav button[onclick*="finance"]');
+              break;
+          case 'objectifs.html':
+              activeButton = document.querySelector('header nav button[onclick*="objectifs"]');
+              break;
+          case 'projets.html':
+              activeButton = document.querySelector('header nav button[onclick*="projets"]');
+              break;
+          case 'nutrition.html':
+              activeButton = document.querySelector('header nav button[onclick*="nutrition"]');
+              break;
+          case 'dashboard.html':
+              activeButton = document.querySelector('header nav button[onclick*="dashboard"]');
+              break;
+              case 'notes.html':
+              activeButton = document.querySelector('header nav button[onclick*="notes"]');
+              break;
+
+      }
+      
+      if (activeButton) {
+          activeButton.classList.add('active');
+      }
+  });
+  </script>

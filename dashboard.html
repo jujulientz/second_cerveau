@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tableau de Bord</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dashboard">
+  <header>
+    <h1>📊 Tableau de Bord</h1>
+    <nav>
+      <button onclick="location.href='dashboard.html'" class="active">📊 Dashboard</button>
+      <button onclick="location.href='vie-perso.html'">📅 Vie Perso</button>
+      <button onclick="location.href='finance.html'">💰 Finance</button>
+      <button onclick="location.href='objectifs.html'">🎯 Objectifs</button>
+      <button onclick="location.href='projets.html'">🚀 Projets</button>
+      <button onclick="location.href='nutrition.html'">🍽️ Nutrition</button>
+      <button onclick="location.href='notes.html'">📝 Notes</button>
+    </nav>
+    <button onclick="logout()" class="logout">🚪 Déconnexion</button>
+  </header>
+
+  <main>
+    <!-- Section Planning du Jour -->
+    <section>
+      <h2>📅 Planning d'Aujourd'hui</h2>
+      <div id="today-planning" class="today-planning">
+        <!-- Chargement dynamique -->
+      </div>
+    </section>
+
+    <div class="dashboard-grid">
+      <!-- Objectifs Journaliers -->
+      <section class="dashboard-card">
+        <h2>🎯 Objectifs du Jour</h2>
+        <div id="today-objectives" class="today-objectives">
+          <!-- Chargement dynamique -->
+        </div>
+      </section>
+
+      <!-- Hydratation -->
+      <section class="dashboard-card">
+        <h2>💧 Hydratation</h2>
+        <div id="dashboard-hydration" class="dashboard-hydration">
+          <!-- Chargement dynamique -->
+        </div>
+      </section>
+
+      <!-- Finance du Mois -->
+      <section class="dashboard-card">
+        <h2>💰 Résumé Financier</h2>
+        <div id="finance-summary" class="finance-summary">
+          <!-- Chargement dynamique -->
+        </div>
+      </section>
+      <!-- Patrimoine -->
+<section class="dashboard-card">
+    <h2>🏦 Patrimoine</h2>
+    <div id="patrimoine-summary" class="patrimoine-summary">
+      <!-- Chargement dynamique -->
+    </div>
+  </section>
+
+      <!-- Nutrition -->
+      <section class="dashboard-card">
+        <h2>🍽️ Nutrition Aujourd'hui</h2>
+        <div id="nutrition-summary" class="nutrition-summary">
+          <!-- Chargement dynamique -->
+        </div>
+      </section>
+
+      <!-- Objectifs Long Terme -->
+      <section class="dashboard-card">
+        <h2>🎯 Objectifs Long Terme</h2>
+        <div id="longterm-summary" class="longterm-summary">
+          <!-- Chargement dynamique -->
+        </div>
+      </section>
+
+      <!-- Projets en Cours -->
+      <section class="dashboard-card">
+        <h2>🚀 Projets Actifs</h2>
+        <div id="projects-summary" class="projects-summary">
+          <!-- Chargement dynamique -->
+        </div>
+      </section>
+      <!-- Notes Récentes -->
+<section class="dashboard-card">
+    <h2>📝 Notes Récentes</h2>
+    <div id="notes-summary" class="notes-summary">
+      <!-- Chargement dynamique -->
+    </div>
+  </section>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
+<script>
+    // DASHBOARD - Données en temps réel
+    function loadDashboardData() {
+        console.log("🔄 Chargement des données réelles...");
+        loadTodayPlanning();
+        loadTodayObjectives();
+        loadDashboardHydration();
+        loadFinanceSummary();
+        loadNutritionSummary();
+        loadLongTermSummary();
+        loadProjectsSummary();
+        loadPatrimoineSummary();
+        loadNotesSummary(); // AJOUT IMPORTANT !
+    }
+    
+    // === PLANNING ===
+    function loadTodayPlanning() {
+        const container = document.getElementById('today-planning');
+        if (!container) return;
+        
+        const now = new Date();
+        const currentDay = now.getDay();
+        const planningDay = currentDay === 0 ? 6 : currentDay - 1;
+        const currentHour = now.getHours();
+        
+        let hasActivities = false;
+        let planningHTML = '<div class="planning-items">';
+        
+        for (let hour = 6; hour <= 23; hour++) {
+            const storageKey = `planning_${hour-6}_${planningDay}`;
+            const activity = localStorage.getItem(storageKey);
+            
+            if (activity && activity.trim() !== '') {
+                hasActivities = true;
+                const timeSlot = `${hour.toString().padStart(2, '0')}:00 - ${(hour + 1).toString().padStart(2, '0')}:00`;
+                const isCurrent = hour === currentHour;
+                
+                planningHTML += `
+                    <div class="planning-item ${isCurrent ? 'current' : ''}">
+                        <span class="planning-time">${timeSlot}</span>
+                        <span class="planning-activity">${activity}</span>
+                        ${isCurrent ? '<span class="current-badge">🔴 Maintenant</span>' : ''}
+                    </div>
+                `;
+            }
+        }
+        
+        planningHTML += '</div>';
+        
+        if (!hasActivities) {
+            container.innerHTML = `
+                <div class="no-data-card">
+                    <div class="no-data-icon">📅</div>
+                    <p>Aucun planning pour aujourd'hui</p>
+                    <small>Planifiez votre journée dans "Vie Perso"</small>
+                </div>
+            `;
+        } else {
+            container.innerHTML = planningHTML;
+        }
+    }
+    
+    // === OBJECTIFS JOURNALIERS ===
+    function loadTodayObjectives() {
+        const container = document.getElementById('today-objectives');
+        if (!container) return;
+        
+        const today = new Date();
+        const todayDate = today.toLocaleDateString('fr-FR');
+        const storageKey = `objectifs_${todayDate.replace(/\//g, '_')}`;
+        const saved = localStorage.getItem(storageKey);
+        const objectives = saved ? JSON.parse(saved) : [];
+        
+        const completed = objectives.filter(obj => obj.completed).length;
+        const total = objectives.length;
+        const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+        
+        if (total === 0) {
+            container.innerHTML = `
+                <div class="no-data-card">
+                    <div class="no-data-icon">🎯</div>
+                    <p>Aucun objectif aujourd'hui</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = `
+            <div class="objectives-progress">
+                <div class="progress-circle" style="background: conic-gradient(var(--accent) ${progress}%, rgba(255,255,255,0.1) 0%)">
+                    <span class="progress-value">${progress}%</span>
+                </div>
+                <div class="objectives-stats">
+                    <span class="stat">${completed}/${total} complétés</span>
+                </div>
+            </div>
+            <div class="objectives-list">
+                ${objectives.slice(0, 3).map(obj => `
+                    <div class="objective-item ${obj.completed ? 'completed' : ''}">
+                        <span class="objective-checkbox">${obj.completed ? '✅' : '⭕'}</span>
+                        <span class="objective-text">${obj.text}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    // === HYDRATATION ===
+    function loadDashboardHydration() {
+        const container = document.getElementById('dashboard-hydration');
+        if (!container) return;
+        
+        const today = new Date().toDateString();
+        const waterData = JSON.parse(localStorage.getItem(`water_${today}`) || '{"glasses": 0}');
+        const glasses = waterData.glasses || 0;
+        const progress = (glasses / 8) * 100;
+        
+        container.innerHTML = `
+            <div class="hydration-display">
+                <div class="hydration-main">
+                    <div class="hydration-circle">
+                        <span class="hydration-value">${glasses * 250}ml</span>
+                        <span class="hydration-label">/2000ml</span>
+                    </div>
+                    <div class="hydration-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress}%"></div>
+                        </div>
+                        <span class="hydration-percent">${Math.round(progress)}%</span>
+                    </div>
+                </div>
+                <div class="hydration-bars">
+                    ${Array.from({length: 8}, (_, i) => `
+                        <div class="hydration-bar ${i < glasses ? 'full' : 'empty'}"></div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    // === FINANCE ===
+    function loadFinanceSummary() {
+        const container = document.getElementById('finance-summary');
+        if (!container) return;
+        
+        // Fonctions de calcul simplifiées pour le dashboard
+        function calculerSoldeMensuel() {
+            const revenusText = localStorage.getItem("revenus") || "";
+            const depensesText = localStorage.getItem("depenses") || "";
+            
+            let totalRevenus = 0;
+            let totalDepenses = 0;
+            
+            // Extraire les nombres des revenus
+            const revenusLines = revenusText.split('\n');
+            revenusLines.forEach(line => {
+                const montant = extraireMontant(line);
+                if (montant > 0) totalRevenus += montant;
+            });
+            
+            // Extraire les nombres des dépenses
+            const depensesLines = depensesText.split('\n');
+            depensesLines.forEach(line => {
+                const montant = extraireMontant(line);
+                if (montant > 0) totalDepenses += montant;
+            });
+            
+            return totalRevenus - totalDepenses;
+        }
+        
+        function extraireMontant(text) {
+            const matches = text.match(/(\d+([.,]\d+)?)/g);
+            if (matches && matches.length > 0) {
+                return parseFloat(matches[0].replace(',', '.'));
+            }
+            return 0;
+        }
+        
+        const solde = calculerSoldeMensuel();
+        const totalRevenus = calculerTotalRevenus ? calculerTotalRevenus() : 0;
+        const totalDepenses = calculerTotalDepenses ? calculerTotalDepenses() : 0;
+        
+        container.innerHTML = `
+            <div class="finance-display">
+                <div class="finance-balance ${solde >= 0 ? 'positive' : 'negative'}">
+                    <span class="balance-label">Solde mensuel</span>
+                    <span class="balance-value">${solde}€</span>
+                </div>
+                <div class="finance-details">
+                    <div class="finance-item">
+                        <span class="finance-icon">📥</span>
+                        <span class="finance-amount positive">${totalRevenus}€</span>
+                        <span class="finance-label">Revenus</span>
+                    </div>
+                    <div class="finance-item">
+                        <span class="finance-icon">📤</span>
+                        <span class="finance-amount negative">${totalDepenses}€</span>
+                        <span class="finance-label">Dépenses</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // === NUTRITION ===
+    function loadNutritionSummary() {
+        const container = document.getElementById('nutrition-summary');
+        if (!container) return;
+        
+        const today = new Date().toDateString();
+        const mealData = JSON.parse(localStorage.getItem(`nutrition_${today}`) || '{}');
+        
+        let totalCalories = 0;
+        Object.values(mealData).forEach(meal => {
+            meal.forEach(food => {
+                totalCalories += food.calories || 0;
+            });
+        });
+        
+        const goals = JSON.parse(localStorage.getItem('nutritionGoals') || '{}');
+        const calorieGoal = goals.calories || 2000;
+        const progress = Math.min((totalCalories / calorieGoal) * 100, 100);
+        
+        container.innerHTML = `
+            <div class="nutrition-display">
+                <div class="calories-main">
+                    <div class="calories-circle">
+                        <span class="calories-value">${Math.round(totalCalories)}</span>
+                        <span class="calories-label">/${calorieGoal} kcal</span>
+                    </div>
+                    <div class="calories-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress}%"></div>
+                        </div>
+                        <span class="calories-percent">${Math.round(progress)}%</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // === OBJECTIFS LONG TERME ===
+    function loadLongTermSummary() {
+        const container = document.getElementById('longterm-summary');
+        if (!container) return;
+        
+        // Récupérer les vrais objectifs
+        const objectives = JSON.parse(localStorage.getItem('longTermObjectives') || '[]');
+        const completed = objectives.filter(obj => obj.completed).length;
+        const total = objectives.length;
+        
+        if (total === 0) {
+            container.innerHTML = `
+                <div class="no-data-card">
+                    <div class="no-data-icon">🎯</div>
+                    <p>Aucun objectif long terme</p>
+                    <small>Ajoutez des objectifs dans "Objectifs"</small>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = `
+            <div class="longterm-display">
+                <div class="longterm-stats">
+                    <span class="stat-value">${completed}/${total}</span>
+                    <span class="stat-label">Objectifs atteints</span>
+                </div>
+                <div class="longterm-list">
+                    ${objectives.slice(0, 2).map(obj => `
+                        <div class="longterm-item ${obj.completed ? 'completed' : ''}">
+                            ${obj.completed ? '✅' : '⭕'} ${obj.text}
+                        </div>
+                    `).join('')}
+                    ${objectives.length > 2 ? `<div class="more-items">+ ${objectives.length - 2} autres</div>` : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    // === PROJETS ===
+    function loadProjectsSummary() {
+        const container = document.getElementById('projects-summary');
+        if (!container) return;
+        
+        // Récupérer les vrais projets
+        const projects = JSON.parse(localStorage.getItem('projects') || '[]');
+        const activeProjects = projects.filter(p => !p.completed);
+        
+        if (activeProjects.length === 0) {
+            container.innerHTML = `
+                <div class="no-data-card">
+                    <div class="no-data-icon">🚀</div>
+                    <p>Aucun projet en cours</p>
+                    <small>Créez des projets dans "Projets"</small>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = `
+            <div class="projects-display">
+                <div class="projects-count">
+                    <span class="count-value">${activeProjects.length}</span>
+                    <span class="count-label">Projets actifs</span>
+                </div>
+                <div class="projects-list">
+                    ${activeProjects.slice(0, 2).map(project => `
+                        <div class="project-item">
+                            <strong>${project.name}</strong>
+                            ${project.deadline ? `<br><small>📅 ${project.deadline}</small>` : ''}
+                        </div>
+                    `).join('')}
+                    ${activeProjects.length > 2 ? `<div class="more-items">+ ${activeProjects.length - 2} autres</div>` : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    // === PATRIMOINE ===
+    function loadPatrimoineSummary() {
+        const container = document.getElementById('patrimoine-summary');
+        if (!container) return;
+        
+        // Récupérer les données réelles du localStorage
+        const patrimoineText = localStorage.getItem("patrimoine") || "";
+        
+        // Analyser le patrimoine
+        const { total, epargne, investissements, immobilier, autres } = analyserPatrimoine(patrimoineText);
+        
+        if (total === 0) {
+            container.innerHTML = `
+                <div class="no-data-card">
+                    <div class="no-data-icon">🏦</div>
+                    <p>Aucun patrimoine renseigné</p>
+                    <small>Ajoutez votre patrimoine dans "Finance"</small>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = `
+            <div class="patrimoine-display">
+                <div class="patrimoine-total">
+                    <span class="patrimoine-value">${formatMoney(total)}</span>
+                    <span class="patrimoine-label">Valeur totale</span>
+                </div>
+                <div class="patrimoine-breakdown">
+                    ${epargne > 0 ? `
+                        <div class="patrimoine-item">
+                            <span class="patrimoine-category">Épargne</span>
+                            <span class="patrimoine-amount">${formatMoney(epargne)}</span>
+                        </div>
+                    ` : ''}
+                    ${investissements > 0 ? `
+                        <div class="patrimoine-item">
+                            <span class="patrimoine-category">Investissements</span>
+                            <span class="patrimoine-amount">${formatMoney(investissements)}</span>
+                        </div>
+                    ` : ''}
+                    ${immobilier > 0 ? `
+                        <div class="patrimoine-item">
+                            <span class="patrimoine-category">Immobilier</span>
+                            <span class="patrimoine-amount">${formatMoney(immobilier)}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    // === NOTES (NOUVELLE FONCTION) ===
+    function loadNotesSummary() {
+        const container = document.getElementById('notes-summary');
+        if (!container) {
+            console.error("❌ Container notes-summary non trouvé");
+            return;
+        }
+    
+        const quickNotes = JSON.parse(localStorage.getItem('quickNotes') || '[]');
+        const events = JSON.parse(localStorage.getItem('agendaEvents') || '[]');
+        const today = new Date().toISOString().split('T')[0];
+        
+        const todayEvents = events.filter(event => event.date === today);
+        
+        console.log("📊 Dashboard - Notes rapides:", quickNotes.length);
+        console.log("📊 Dashboard - Événements aujourd'hui:", todayEvents.length);
+    
+        if (quickNotes.length === 0 && todayEvents.length === 0) {
+            container.innerHTML = `
+                <div class="no-data-card">
+                    <div class="no-data-icon">📝</div>
+                    <p>Aucune note récente</p>
+                    <small>Ajoutez des notes dans "Notes"</small>
+                </div>
+            `;
+            return;
+        }
+    
+        let content = '';
+        
+        if (todayEvents.length > 0) {
+            content += `
+                <div class="today-events">
+                    <h4>📅 Aujourd'hui</h4>
+                    ${todayEvents.slice(0, 2).map(event => `
+                        <div class="event-mini">
+                            <strong>${event.title}</strong>
+                            ${event.time ? `<small>${event.time}</small>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+    
+        if (quickNotes.length > 0) {
+            content += `
+                <div class="recent-notes">
+                    <h4>📌 Notes récentes</h4>
+                    ${quickNotes.slice(0, 2).map(note => `
+                        <div class="note-mini">${note.text}</div>
+                    `).join('')}
+                </div>
+            `;
+        }
+    
+        container.innerHTML = content;
+    }
+    
+    // === FONCTIONS UTILITAIRES ===
+    function analyserPatrimoine(patrimoineText) {
+        let total = 0;
+        let epargne = 0;
+        let investissements = 0;
+        let immobilier = 0;
+        let autres = 0;
+        
+        const lignes = patrimoineText.split('\n').filter(line => line.trim().length > 0);
+        
+        lignes.forEach(ligne => {
+            const montant = extraireMontant(ligne);
+            const ligneLower = ligne.toLowerCase();
+            
+            if (montant > 0) {
+                total += montant;
+                
+                if (ligneLower.includes('livret') || ligneLower.includes('épargne') || ligneLower.includes('compte') || ligneLower.includes('banque')) {
+                    epargne += montant;
+                } else if (ligneLower.includes('action') || ligneLower.includes('bourse') || ligneLower.includes('crypto') || ligneLower.includes('investissement')) {
+                    investissements += montant;
+                } else if (ligneLower.includes('appartement') || ligneLower.includes('maison') || ligneLower.includes('immobilier') || ligneLower.includes('terrain')) {
+                    immobilier += montant;
+                } else {
+                    autres += montant;
+                }
+            }
+        });
+        
+        return { total, epargne, investissements, immobilier, autres };
+    }
+    
+    function extraireMontant(text) {
+        const matches = text.match(/(\d+([.,]\d+)?)/g);
+        if (matches && matches.length > 0) {
+            return parseFloat(matches[0].replace(',', '.'));
+        }
+        return 0;
+    }
+    
+    function formatMoney(amount) {
+        return new Intl.NumberFormat('fr-FR', {
+            style: 'currency',
+            currency: 'EUR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(amount);
+    }
+    
+    // === INITIALISATION ===
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("🚀 Dashboard chargé - Initialisation...");
+        setTimeout(loadDashboardData, 100);
+    });
+    
+    // Recharger toutes les 30 secondes
+    setInterval(loadDashboardData, 30000);
+    </script>
