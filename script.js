@@ -700,10 +700,6 @@ function initializePage() {
     console.log("🚀 Initialisation Projets");
     // Implémentation simplifiée
   }
-  
-  function showStats() {
-    showNotification('Statistiques en développement', 'success');
-  }
 
   // === Finance - Avec Revenu Mensuel ===
 function initializeFinance() {
@@ -3771,4 +3767,5 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+
 });
