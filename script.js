@@ -1,3 +1,20 @@
+async function syncNotesFromFirebase() {
+  if (!window.db) return;
+
+  const { collection, getDocs } = window.fs;
+
+  const snapshot = await getDocs(collection(window.db, "quickNotes"));
+  const notes = [];
+
+  snapshot.forEach(doc => {
+    notes.push(doc.data());
+  });
+
+  localStorage.setItem("quickNotes", JSON.stringify(notes));
+  console.log("✅ Notes synchronisées depuis Firebase");
+}
+
+
 function searchFoodLocal(query) {
   const foodDatabase = [
     { name: "Poulet (100g)", calories: 165, protein: 31, carbs: 0, fat: 3.6 },
@@ -3769,3 +3786,4 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 });
+
