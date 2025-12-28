@@ -6,21 +6,10 @@
   <title>Nutrition</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-</head>
-<body class="nutrition">
-  <header>
-    <h1>🍽️ Nutrition</h1>
-    <nav>
-      <button onclick="location.href='dashboard.html'" class="active">📊 Dashboard</button>
-      <button onclick="location.href='vie-perso.html'">📅 Vie Perso</button>
-      <button onclick="location.href='finance.html'">💰 Finance</button>
-      <button onclick="location.href='objectifs.html'">🎯 Objectifs</button>
-      <button onclick="location.href='projets.html'">🚀 Projets</button>
-      <button onclick="location.href='nutrition.html'" class="active">🍽️ Nutrition</button>
-      <button onclick="location.href='notes.html'">📝 Notes</button>
-    </nav>
-    <button onclick="logout()" class="logout">🚪 Déconnexion</button>
 
+    <!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
@@ -45,9 +34,25 @@
   window.db = db;
 </script>
 
+
 <!-- Firebase Helpers -->
 <script src="firebase-helpers.js"></script>
-    
+  
+</head>
+<body class="nutrition">
+  <header>
+    <h1>🍽️ Nutrition</h1>
+    <nav>
+      <button onclick="location.href='dashboard.html'" class="active">📊 Dashboard</button>
+      <button onclick="location.href='vie-perso.html'">📅 Vie Perso</button>
+      <button onclick="location.href='finance.html'">💰 Finance</button>
+      <button onclick="location.href='objectifs.html'">🎯 Objectifs</button>
+      <button onclick="location.href='projets.html'">🚀 Projets</button>
+      <button onclick="location.href='nutrition.html'" class="active">🍽️ Nutrition</button>
+      <button onclick="location.href='notes.html'">📝 Notes</button>
+    </nav>
+    <button onclick="logout()" class="logout">🚪 Déconnexion</button>
+
   </header>
 
   <main>
@@ -297,3 +302,4 @@
   });
 
   </script>
+
