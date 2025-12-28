@@ -5,52 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vie Perso</title>
   <link rel="stylesheet" href="style.css">
-
-    <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <!-- Firebase -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDxC--WywLZ13NZdiouncGLb8SaE-3GggQ",
-    authDomain: "site-perso-b7c08.firebaseapp.com",
-    databaseURL: "https://site-perso-b7c08-default-rtdb.firebaseio.com",
-    projectId: "site-perso-b7c08",
-    storageBucket: "site-perso-b7c08.firebasestorage.app",
-    messagingSenderId: "1015317206704",
-    appId: "1:1015317206704:web:19e1d3762bda8a7cf78d75",
-    measurementId: "G-MMLMV2DPNT"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const db = getFirestore(app);
   
-  window.db = db;
-</script>
-
-
-<!-- Firebase Helpers -->
-<script src="firebase-helpers.js"></script>
+  <!-- Firebase SDK (Version compatibilité) -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  
+  <!-- Configuration Firebase -->
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDxC--WywLZ13NZdiouncGLb8SaE-3GggQ",
+      authDomain: "site-perso-b7c08.firebaseapp.com",
+      projectId: "site-perso-b7c08",
+      storageBucket: "site-perso-b7c08.firebasestorage.app",
+      messagingSenderId: "1015317206704",
+      appId: "1:1015317206704:web:19e1d3762bda8a7cf78d75",
+      measurementId: "G-MMLMV2DPNT"
+    };
+    
+    // Initialiser Firebase
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        // Vérifier si Firebase est déjà initialisé
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+          console.log("✅ Firebase initialisé");
+        }
+        
+        // Rendre Firebase accessible globalement
+        window.firebase = firebase;
+        window.db = firebase.firestore();
+      } catch (error) {
+        console.error("❌ Erreur d'initialisation Firebase:", error);
+      }
+    });
+  </script>
 </head>
 <body class="vie-perso">
   <header>
     <h1>📅 Vie Perso</h1>
     <nav>
-      <button onclick="location.href='dashboard.html'" >📊 Dashboard</button>
+      <button onclick="location.href='dashboard.html'">📊 Dashboard</button>
       <button onclick="location.href='vie-perso.html'" class="active">📅 Vie Perso</button>
-      <button onclick="location.href='finance.html'" >💰 Finance</button>
+      <button onclick="location.href='finance.html'">💰 Finance</button>
       <button onclick="location.href='objectifs.html'">🎯 Objectifs</button>
       <button onclick="location.href='projets.html'">🚀 Projets</button>
       <button onclick="location.href='nutrition.html'">🍽️ Nutrition</button>
       <button onclick="location.href='notes.html'">📝 Notes</button>
     </nav>
     <button onclick="logout()" class="logout">Déconnexion</button>
-    
   </header>
 
   <main>
@@ -119,6 +122,7 @@
         </div>
       </div>
     </section>
+    
     <div class="actions">
       <button onclick="saveWeek()" class="save">💾 Sauvegarder</button>
       <button onclick="downloadWeekPDF()" class="download">📊 Télécharger PDF</button>
@@ -128,15 +132,16 @@
   </main>
 
   <script src="script.js"></script>
-</body>
-</html>
-<script>
-  // Mettre à jour la navigation active
-  document.addEventListener('DOMContentLoaded', function() {
+  
+  <script>
+    // Mettre à jour la navigation active
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log("🔄 Initialisation de la page Vie Perso...");
+      
       // Retirer la classe active de tous les boutons
       const navButtons = document.querySelectorAll('header nav button');
       navButtons.forEach(button => {
-          button.classList.remove('active');
+        button.classList.remove('active');
       });
       
       // Ajouter la classe active au bouton de la page actuelle
@@ -144,34 +149,41 @@
       let activeButton = null;
       
       switch(currentPage) {
-          case 'vie-perso.html':
-              activeButton = document.querySelector('header nav button[onclick*="vie-perso"]');
-              break;
-          case 'finance.html':
-              activeButton = document.querySelector('header nav button[onclick*="finance"]');
-              break;
-          case 'objectifs.html':
-              activeButton = document.querySelector('header nav button[onclick*="objectifs"]');
-              break;
-          case 'projets.html':
-              activeButton = document.querySelector('header nav button[onclick*="projets"]');
-              break;
-          case 'nutrition.html':
-              activeButton = document.querySelector('header nav button[onclick*="nutrition"]');
-              break;
-          case 'dashboard.html':
-              activeButton = document.querySelector('header nav button[onclick*="dashboard"]');
-              break;
-              case 'notes.html':
-              activeButton = document.querySelector('header nav button[onclick*="notes"]');
-              break;
-
+        case 'vie-perso.html':
+          activeButton = document.querySelector('header nav button[onclick*="vie-perso"]');
+          break;
+        case 'finance.html':
+          activeButton = document.querySelector('header nav button[onclick*="finance"]');
+          break;
+        case 'objectifs.html':
+          activeButton = document.querySelector('header nav button[onclick*="objectifs"]');
+          break;
+        case 'projets.html':
+          activeButton = document.querySelector('header nav button[onclick*="projets"]');
+          break;
+        case 'nutrition.html':
+          activeButton = document.querySelector('header nav button[onclick*="nutrition"]');
+          break;
+        case 'dashboard.html':
+          activeButton = document.querySelector('header nav button[onclick*="dashboard"]');
+          break;
+        case 'notes.html':
+          activeButton = document.querySelector('header nav button[onclick*="notes"]');
+          break;
       }
       
       if (activeButton) {
-          activeButton.classList.add('active');
+        activeButton.classList.add('active');
       }
-  });
-
+      
+      // Forcer l'initialisation si nécessaire
+      setTimeout(function() {
+        if (document.getElementById("planning-body").innerHTML.includes("Chargement")) {
+          console.log("🔄 Forçage du chargement du planning...");
+          initializePage();
+        }
+      }, 1000);
+    });
   </script>
-
+</body>
+</html>
