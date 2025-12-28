@@ -11,274 +11,190 @@ const FIREBASE_CONFIG = {
     measurementId: "G-MMLMV2DPNT"
 };
 
-// ID utilisateur (à remplacer plus tard par Firebase Auth)
+// ========== FIREBASE CONFIGURATION ==========
+
+// ID utilisateur
 const CURRENT_USER_ID = "touzeauj";
 
-// Variables globales Firebase
-let db = null;
-let firebaseInitialized = false;
-
-// Initialiser Firebase
-async function initializeFirebase() {
-    try {
-        // Vérifier si Firebase est déjà chargé
-        if (typeof firebase === 'undefined') {
-            console.warn("⚠️ Firebase non chargé, utilisation du localStorage uniquement");
-            return false;
-        }
-
-        // Initialiser Firebase
-        const app = firebase.initializeApp(FIREBASE_CONFIG);
-        db = firebase.firestore();
-        firebaseInitialized = true;
-        
-        console.log("✅ Firebase initialisé avec Firestore");
-        return true;
-    } catch (error) {
-        console.error("❌ Erreur d'initialisation Firebase:", error);
-        return false;
-    }
+// Vérifier si Firebase est initialisé
+function isFirebaseReady() {
+    return typeof firebase !== 'undefined' && 
+           firebase.apps && 
+           firebase.apps.length > 0 &&
+           typeof firebase.firestore === 'function';
 }
 
 // ========== FONCTIONS DE SAUVEGARDE AVEC FIREBASE ==========
 
 // Sauvegarder une donnée
 async function saveData(key, value) {
-    // Formater la valeur
-    const formattedValue = typeof value === 'object' ? JSON.stringify(value) : value;
+    console.log(`💾 Tentative de sauvegarde: ${key}`);
     
-    // Sauvegarder dans Firebase si disponible
-    if (firebaseInitialized && db) {
-        try {
-            const userRef = db.collection('users').doc(CURRENT_USER_ID);
-            
-            // Vérifier si le document existe
-            const userDoc = await userRef.get();
-            
-            if (userDoc.exists) {
-                // Mettre à jour
-                await userRef.update({
-                    [key]: formattedValue,
-                    lastUpdated: new Date().toISOString()
-                });
-            } else {
-                // Créer
-                await userRef.set({
-                    [key]: formattedValue,
-                    userId: CURRENT_USER_ID,
-                    createdAt: new Date().toISOString(),
-                    lastUpdated: new Date().toISOString()
-                });
+    try {
+        // Formater la valeur
+        const formattedValue = typeof value === 'object' ? JSON.stringify(value) : value;
+        
+        // 1. Sauvegarder dans Firebase si disponible
+        if (isFirebaseReady()) {
+            try {
+                console.log(`🔥 Sauvegarde Firebase pour: ${key}`);
+                const userRef = firebase.firestore().collection('users').doc(CURRENT_USER_ID);
+                const userDoc = await userRef.get();
+                
+                if (userDoc.exists) {
+                    await userRef.update({
+                        [key]: formattedValue,
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } else {
+                    await userRef.set({
+                        [key]: formattedValue,
+                        userId: CURRENT_USER_ID,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+                console.log(`✅ Firebase: ${key} sauvegardé avec succès`);
+            } catch (firebaseError) {
+                console.warn(`⚠️ Erreur Firebase (${key}):`, firebaseError);
+                console.log(`🔄 Fallback vers localStorage pour: ${key}`);
             }
-            
-            console.log(`✅ Donnée sauvegardée dans Firebase: ${key}`);
-        } catch (error) {
-            console.error(`❌ Erreur sauvegarde Firebase (${key}):`, error);
         }
+        
+        // 2. TOUJOURS sauvegarder dans localStorage (cache local)
+        saveData(key, formattedValue);
+        console.log(`✅ LocalStorage: ${key} sauvegardé`);
+        
+        return true;
+        
+    } catch (error) {
+        console.error(`❌ Erreur critique sauvegarde ${key}:`, error);
+        return false;
     }
-    
-    // Toujours sauvegarder dans localStorage pour le cache
-    localStorage.setItem(key, formattedValue);
-    return true;
 }
 
 // Charger une donnée
 async function loadData(key, defaultValue = null) {
-    // D'abord vérifier le cache localStorage
-    const cached = localStorage.getItem(key);
-    if (cached !== null) {
-        try {
-            return JSON.parse(cached);
-        } catch {
-            return cached;
-        }
-    }
+    console.log(`📥 Tentative de chargement: ${key}`);
     
-    // Essayer Firebase si disponible
-    if (firebaseInitialized && db) {
-        try {
-            const userRef = db.collection('users').doc(CURRENT_USER_ID);
-            const userDoc = await userRef.get();
-            
-            if (userDoc.exists) {
-                const data = userDoc.data();
-                if (data[key] !== undefined) {
-                    const value = data[key];
-                    
-                    // Mettre en cache
-                    localStorage.setItem(key, typeof value === 'object' ? JSON.stringify(value) : value);
-                    
-                    // Parser si nécessaire
-                    try {
-                        return JSON.parse(value);
-                    } catch {
-                        return value;
+    try {
+        // 1. D'abord vérifier le localStorage (le plus rapide)
+        const cached = loadData(key);
+        if (cached !== null) {
+            console.log(`✅ ${key} trouvé dans le cache local`);
+            try {
+                return JSON.parse(cached);
+            } catch {
+                return cached;
+            }
+        }
+        
+        // 2. Si pas dans le cache, essayer Firebase
+        if (isFirebaseReady()) {
+            try {
+                console.log(`🔥 Chargement depuis Firebase: ${key}`);
+                const userRef = firebase.firestore().collection('users').doc(CURRENT_USER_ID);
+                const userDoc = await userRef.get();
+                
+                if (userDoc.exists) {
+                    const data = userDoc.data();
+                    if (data && data[key] !== undefined) {
+                        const value = data[key];
+                        
+                        // Mettre en cache dans localStorage
+                        saveData(key, value);
+                        console.log(`✅ ${key} chargé depuis Firebase et mis en cache`);
+                        
+                        try {
+                            return JSON.parse(value);
+                        } catch {
+                            return value;
+                        }
                     }
                 }
+                console.log(`ℹ️ ${key} non trouvé dans Firebase`);
+            } catch (firebaseError) {
+                console.warn(`⚠️ Erreur Firebase chargement (${key}):`, firebaseError);
             }
-        } catch (error) {
-            console.error(`❌ Erreur chargement Firebase (${key}):`, error);
         }
+        
+        // 3. Retourner la valeur par défaut
+        console.log(`📝 ${key}: utilisation de la valeur par défaut`);
+        return defaultValue;
+        
+    } catch (error) {
+        console.error(`❌ Erreur critique chargement ${key}:`, error);
+        return defaultValue;
     }
-    
-    return defaultValue;
 }
 
-// ========== FONCTIONS SPÉCIFIQUES POUR LES DONNÉES STRUCTURÉES ==========
+// ========== FONCTIONS SPÉCIFIQUES ==========
 
-// PLANNING
+// Planning
 async function savePlanning(hourIndex, dayIndex, activity) {
     const key = `planning_${hourIndex}_${dayIndex}`;
-    await saveData(key, activity);
+    return await saveData(key, activity);
 }
 
 async function loadPlanning(hourIndex, dayIndex) {
     const key = `planning_${hourIndex}_${dayIndex}`;
-    return await loadData(key, '');
+    const data = await loadData(key, '');
+    console.log(`📅 Planning [${hourIndex},${dayIndex}]: "${data}"`);
+    return data;
 }
 
-// OBJECTIFS JOURNALIERS
+// Objectifs journaliers
 async function saveDailyObjectives(date, objectives) {
     const dateKey = `objectifs_${date.replace(/\//g, '_')}`;
-    await saveData(dateKey, objectives);
+    return await saveData(dateKey, objectives);
 }
 
 async function loadDailyObjectives(date) {
     const dateKey = `objectifs_${date.replace(/\//g, '_')}`;
-    return await loadData(dateKey, []);
+    const data = await loadData(dateKey, []);
+    
+    // S'assurer que c'est un tableau
+    if (!Array.isArray(data)) {
+        console.warn(`⚠️ Objectifs ${date} n'est pas un tableau:`, data);
+        return [];
+    }
+    
+    console.log(`🎯 Objectifs ${date}: ${data.length} objectifs`);
+    return data;
 }
 
-// HYDRATATION
+// Hydratation
 async function saveHydration(date, glasses) {
-    const waterData = { glasses };
     const key = `water_${date}`;
-    await saveData(key, waterData);
+    return await saveData(key, { glasses, date });
 }
 
 async function loadHydration(date) {
     const key = `water_${date}`;
     const data = await loadData(key, { glasses: 0 });
+    console.log(`💧 Hydratation ${date}: ${data.glasses || 0} verres`);
     return data.glasses || 0;
 }
 
-// FINANCE
-async function saveFinance(key, content) {
-    await saveData(key, content);
+// ========== FONCTIONS DE DÉBOGAGE ==========
+
+function debugFirebase() {
+    console.group("🔍 DEBUG FIREBASE");
+    console.log("Firebase disponible:", typeof firebase !== 'undefined');
+    console.log("Firebase apps:", firebase?.apps?.length || 0);
+    console.log("Firestore disponible:", typeof firebase?.firestore === 'function');
+    console.log("Current user ID:", CURRENT_USER_ID);
+    console.log("LocalStorage clés:", Object.keys(localStorage).length);
+    console.groupEnd();
 }
 
-async function loadFinance(key) {
-    return await loadData(key, '');
-}
+// ========== LE RESTE DE VOTRE SCRIPT.JS RESTE IDENTIQUE ==========
+// Gardez TOUTES vos fonctions existantes après ce point
+// initializeViePerso, initializePlanning, etc.
 
-// NUTRITION
-async function saveNutrition(date, mealData) {
-    const key = `nutrition_${date}`;
-    await saveData(key, mealData);
-}
-
-async function loadNutrition(date) {
-    const key = `nutrition_${date}`;
-    return await loadData(key, {});
-}
-
-// SPORT
-async function saveSport(date, activities) {
-    const key = `sport_${date}`;
-    await saveData(key, activities);
-}
-
-async function loadSport(date) {
-    const key = `sport_${date}`;
-    return await loadData(key, []);
-}
-
-// OBJECTIFS LONG TERME
-async function saveLongTermObjectives(objectives) {
-    await saveData('longTermObjectives', objectives);
-}
-
-async function loadLongTermObjectives() {
-    return await loadData('longTermObjectives', []);
-}
-
-// HABITUDES
-async function saveHabits(habits) {
-    await saveData('habits', habits);
-}
-
-async function loadHabits() {
-    return await loadData('habits', []);
-}
-
-// PROJETS
-async function saveProjects(projects) {
-    await saveData('projects', projects);
-}
-
-async function loadProjects() {
-    return await loadData('projects', []);
-}
-
-// NOTES
-async function saveQuickNotes(notes) {
-    await saveData('quickNotes', notes);
-}
-
-async function loadQuickNotes() {
-    return await loadData('quickNotes', []);
-}
-
-async function saveAgendaEvents(events) {
-    await saveData('agendaEvents', events);
-}
-
-async function loadAgendaEvents() {
-    return await loadData('agendaEvents', []);
-}
-
-async function saveCategoryNotes(notes) {
-    await saveData('categoryNotes', notes);
-}
-
-async function loadCategoryNotes() {
-    return await loadData('categoryNotes', {});
-}
-
-// ========== FONCTIONS DE MIGRATION ==========
-
-async function migrateToFirebase() {
-    console.log("🔄 Migration des données vers Firebase...");
-    
-    try {
-        // Collecter toutes les clés du localStorage
-        const allKeys = Object.keys(localStorage);
-        
-        for (const key of allKeys) {
-            // Ne pas migrer les données d'authentification
-            if (key === 'loggedIn' || key === 'firebase_migrated') continue;
-            
-            const value = localStorage.getItem(key);
-            
-            try {
-                // Essayer de parser JSON
-                const parsedValue = JSON.parse(value);
-                await saveData(key, parsedValue);
-            } catch {
-                // Si ce n'est pas du JSON, sauvegarder tel quel
-                await saveData(key, value);
-            }
-            
-            console.log(`✅ Migré: ${key}`);
-        }
-        
-        localStorage.setItem('firebase_migrated', 'true');
-        showNotification('Données migrées vers Firebase avec succès !', 'success');
-        
-    } catch (error) {
-        console.error('❌ Erreur lors de la migration:', error);
-        showNotification('Erreur lors de la migration', 'danger');
-    }
-}
+// SEULEMENT modifier les appels à localStorage :
+// Remplacer loadData() par loadData()
+// Remplacer saveData() par saveData()
 
 // ========== CODE EXISTANT (MODIFIÉ POUR UTILISER FIREBASE) ==========
 
@@ -318,7 +234,7 @@ function login() {
     const error = document.getElementById("error");
     
     if (user === "touzeauj" && pass === "Glowup2025!") {
-        localStorage.setItem("loggedIn", "true");
+        saveData("loggedIn", "true");
         window.location.href = "dashboard.html";
     } else {
         error.textContent = "Identifiant ou mot de passe incorrect.";
@@ -332,7 +248,7 @@ function logout() {
 
 // Sécurité renforcée
 if (!window.location.href.includes("index.html")) {
-    if (localStorage.getItem("loggedIn") !== "true") {
+    if (loadData("loggedIn") !== "true") {
         window.location.href = "index.html";
     }
 }
@@ -345,14 +261,14 @@ async function initializePage() {
     await initializeFirebase();
     
     // Vérifier la migration
-    const hasMigrated = localStorage.getItem('firebase_migrated');
+    const hasMigrated = loadData('firebase_migrated');
     if (!hasMigrated && firebaseInitialized) {
         setTimeout(() => {
             const shouldMigrate = confirm('Voulez-vous sauvegarder vos données dans le cloud (Firebase) ?\n\n✅ Vos données seront accessibles depuis tous vos appareils\n✅ Sauvegarde automatique\n✅ Plus sécurisé');
             if (shouldMigrate) {
                 migrateToFirebase();
             } else {
-                localStorage.setItem('firebase_migrated', 'skipped');
+                saveData('firebase_migrated', 'skipped');
             }
         }, 2000);
     }
@@ -1140,7 +1056,7 @@ function getAllPlanningData() {
     const data = {};
     Object.keys(localStorage).forEach(key => {
         if (key.startsWith('planning_')) {
-            data[key] = localStorage.getItem(key);
+            data[key] = loadData(key);
         }
     });
     return data;
@@ -1150,7 +1066,7 @@ function getAllObjectivesData() {
     const data = {};
     Object.keys(localStorage).forEach(key => {
         if (key.startsWith('objectifs_')) {
-            data[key] = localStorage.getItem(key);
+            data[key] = loadData(key);
         }
     });
     return data;
@@ -1416,7 +1332,7 @@ async function searchFood() {
 }
 
 function selectFoodFromAPI(name, calories, protein, carbs, fat, imageUrl) {
-    localStorage.setItem('selectedFood', JSON.stringify({
+    saveData('selectedFood', JSON.stringify({
         name, calories, protein, carbs, fat, quantity: 100, imageUrl
     }));
     
@@ -1427,7 +1343,7 @@ function selectFoodFromAPI(name, calories, protein, carbs, fat, imageUrl) {
 }
 
 function selectFood(name, calories, protein, carbs, fat) {
-    localStorage.setItem('selectedFood', JSON.stringify({
+    saveData('selectedFood', JSON.stringify({
         name, calories, protein, carbs, fat, quantity: 100
     }));
     
@@ -1438,7 +1354,7 @@ function selectFood(name, calories, protein, carbs, fat) {
 }
 
 async function addFoodToMeal(mealType) {
-    const selectedFood = localStorage.getItem('selectedFood');
+    const selectedFood = loadData('selectedFood');
     
     if (!selectedFood) {
         showNotification('Veuillez d\'abord rechercher et sélectionner un aliment', 'danger');
@@ -1724,7 +1640,7 @@ function calculateCaloriesBurned() {
         return;
     }
     
-    const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+    const profile = JSON.parse(loadData('userProfile') || '{}');
     const weight = profile.weight || 70;
     
     if (!sportDatabase[sportType]) {
@@ -1891,7 +1807,7 @@ async function removeHabit(index) {
 }
 
 function updateHabitsStats() {
-    const habits = JSON.parse(localStorage.getItem('habits') || '[]');
+    const habits = JSON.parse(loadData('habits') || '[]');
     const maxStreak = habits.reduce((max, habit) => Math.max(max, habit.streak || 0), 0);
     
     if (document.getElementById('current-streak')) {
@@ -2016,7 +1932,7 @@ async function loadDeadlines() {
 }
 
 function updateProjectsStats() {
-    const projects = JSON.parse(localStorage.getItem('projects') || '[]');
+    const projects = JSON.parse(loadData('projects') || '[]');
     const total = projects.length;
     const active = projects.filter(p => !p.completed).length;
     const completed = projects.filter(p => p.completed).length;
@@ -2789,3 +2705,4 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 });
+
