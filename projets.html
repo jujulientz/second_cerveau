@@ -20,6 +20,34 @@
       <button onclick="location.href='notes.html'">📝 Notes</button>
     </nav>
     <button onclick="logout()" class="logout">🚪 Déconnexion</button>
+
+    <!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDxC--WywLZ13NZdiouncGLb8SaE-3GggQ",
+    authDomain: "site-perso-b7c08.firebaseapp.com",
+    databaseURL: "https://site-perso-b7c08-default-rtdb.firebaseio.com",
+    projectId: "site-perso-b7c08",
+    storageBucket: "site-perso-b7c08.firebasestorage.app",
+    messagingSenderId: "1015317206704",
+    appId: "1:1015317206704:web:19e1d3762bda8a7cf78d75",
+    measurementId: "G-MMLMV2DPNT"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);
+  
+  window.db = db;
+</script>
+
+<!-- Firebase Helpers -->
+<script src="firebase-helpers.js"></script>
+    
   </header>
 
   <main>
@@ -108,4 +136,5 @@
           activeButton.classList.add('active');
       }
   });
+
   </script>
