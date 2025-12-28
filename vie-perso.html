@@ -6,11 +6,10 @@
   <title>Vie Perso</title>
   <link rel="stylesheet" href="style.css">
   
-  <!-- Firebase SDK (Version compatibilité) -->
+  <!-- UNIQUEMENT cette version de Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   
-  <!-- Configuration Firebase -->
   <script>
     // Configuration Firebase
     const firebaseConfig = {
@@ -23,31 +22,27 @@
       measurementId: "G-MMLMV2DPNT"
     };
     
-    // Initialiser Firebase
-    document.addEventListener('DOMContentLoaded', function() {
-      try {
-        // Vérifier si Firebase est déjà initialisé
-        if (!firebase.apps.length) {
-          firebase.initializeApp(firebaseConfig);
-          console.log("✅ Firebase initialisé");
-        }
-        
-        // Rendre Firebase accessible globalement
-        window.firebase = firebase;
-        window.db = firebase.firestore();
-      } catch (error) {
-        console.error("❌ Erreur d'initialisation Firebase:", error);
+    // Initialiser Firebase immédiatement
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+        console.log("✅ Firebase 9.6.1 initialisé avec succès");
       }
-    });
+      window.firebase = firebase;
+      window.db = firebase.firestore();
+    } catch (error) {
+      console.error("❌ Erreur d'initialisation Firebase:", error);
+    }
   </script>
 </head>
 <body class="vie-perso">
+  <!-- Le reste de votre code HTML reste identique -->
   <header>
     <h1>📅 Vie Perso</h1>
     <nav>
-      <button onclick="location.href='dashboard.html'">📊 Dashboard</button>
+      <button onclick="location.href='dashboard.html'" >📊 Dashboard</button>
       <button onclick="location.href='vie-perso.html'" class="active">📅 Vie Perso</button>
-      <button onclick="location.href='finance.html'">💰 Finance</button>
+      <button onclick="location.href='finance.html'" >💰 Finance</button>
       <button onclick="location.href='objectifs.html'">🎯 Objectifs</button>
       <button onclick="location.href='projets.html'">🚀 Projets</button>
       <button onclick="location.href='nutrition.html'">🍽️ Nutrition</button>
@@ -134,55 +129,14 @@
   <script src="script.js"></script>
   
   <script>
-    // Mettre à jour la navigation active
+    // Navigation active
     document.addEventListener('DOMContentLoaded', function() {
-      console.log("🔄 Initialisation de la page Vie Perso...");
-      
-      // Retirer la classe active de tous les boutons
       const navButtons = document.querySelectorAll('header nav button');
-      navButtons.forEach(button => {
-        button.classList.remove('active');
-      });
+      navButtons.forEach(btn => btn.classList.remove('active'));
       
-      // Ajouter la classe active au bouton de la page actuelle
       const currentPage = window.location.pathname.split('/').pop();
-      let activeButton = null;
-      
-      switch(currentPage) {
-        case 'vie-perso.html':
-          activeButton = document.querySelector('header nav button[onclick*="vie-perso"]');
-          break;
-        case 'finance.html':
-          activeButton = document.querySelector('header nav button[onclick*="finance"]');
-          break;
-        case 'objectifs.html':
-          activeButton = document.querySelector('header nav button[onclick*="objectifs"]');
-          break;
-        case 'projets.html':
-          activeButton = document.querySelector('header nav button[onclick*="projets"]');
-          break;
-        case 'nutrition.html':
-          activeButton = document.querySelector('header nav button[onclick*="nutrition"]');
-          break;
-        case 'dashboard.html':
-          activeButton = document.querySelector('header nav button[onclick*="dashboard"]');
-          break;
-        case 'notes.html':
-          activeButton = document.querySelector('header nav button[onclick*="notes"]');
-          break;
-      }
-      
-      if (activeButton) {
-        activeButton.classList.add('active');
-      }
-      
-      // Forcer l'initialisation si nécessaire
-      setTimeout(function() {
-        if (document.getElementById("planning-body").innerHTML.includes("Chargement")) {
-          console.log("🔄 Forçage du chargement du planning...");
-          initializePage();
-        }
-      }, 1000);
+      const activeButton = document.querySelector(`button[onclick*="${currentPage}"]`);
+      if (activeButton) activeButton.classList.add('active');
     });
   </script>
 </body>
