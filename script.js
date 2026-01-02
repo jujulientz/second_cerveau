@@ -228,18 +228,148 @@ function searchFoodLocal(query) {
 }
 
 // === Authentification ===
+// === Authentification ===
 function login() {
     const user = document.getElementById("username").value;
     const pass = document.getElementById("password").value;
     const error = document.getElementById("error");
     
     if (user === "touzeauj" && pass === "Glowup2025!") {
-        saveData("loggedIn", "true");
+        console.log("✅ Connexion réussie pour:", user);
+        
+        // Sauvegarder l'état de connexion de MULTIPLE façons
+        localStorage.setItem("loggedIn", "true");
+        localStorage.setItem("username", user);
+        localStorage.setItem("loginTime", new Date().toISOString());
+        
+        // Rediriger vers le dashboard
+        console.log("🔄 Redirection vers dashboard.html");
         window.location.href = "dashboard.html";
     } else {
         error.textContent = "Identifiant ou mot de passe incorrect.";
+        error.style.color = "var(--danger)";
+        console.error("❌ Échec de connexion pour:", user);
     }
 }
+
+function logout() {
+    console.log("🚪 Déconnexion de l'utilisateur");
+    
+    // Nettoyer TOUTES les données de session
+    localStorage.removeItem("loggedIn");
+    localStorage.removeItem("username");
+    localStorage.removeItem("loginTime");
+    
+    // Rediriger vers la page de connexion
+    window.location.href = "index.html";
+}
+
+// === Vérification de sécurité RENFORCÉE ===
+function checkAuthentication() {
+    console.log("🔍 Vérification de l'authentification...");
+    
+    // Vérifier SI nous sommes sur la page de login
+    const isLoginPage = window.location.pathname.includes("index.html") || 
+                       window.location.pathname.endsWith("/");
+    
+    if (isLoginPage) {
+        console.log("📄 Page de login détectée - Pas de vérification nécessaire");
+        return true; // Laisser passer sur la page de login
+    }
+    
+    // Vérifications MULTIPLES de l'authentification
+    const loggedIn = localStorage.getItem("loggedIn") === "true";
+    const username = localStorage.getItem("username");
+    const loginTime = localStorage.getItem("loginTime");
+    
+    console.log("État de connexion:", {
+        loggedIn,
+        username,
+        loginTime,
+        pageActuelle: window.location.pathname
+    });
+    
+    // Si NON connecté, rediriger vers index.html
+    if (!loggedIn) {
+        console.warn("⚠️ Utilisateur non authentifié, redirection vers index.html");
+        window.location.href = "index.html";
+        return false;
+    }
+    
+    // Vérifier l'ancienneté de la connexion (optionnel - 24h max)
+    if (loginTime) {
+        const loginDate = new Date(loginTime);
+        const now = new Date();
+        const hoursDiff = (now - loginDate) / (1000 * 60 * 60);
+        
+        if (hoursDiff > 24) {
+            console.warn("⚠️ Session expirée (24h), déconnexion");
+            logout();
+            return false;
+        }
+    }
+    
+    console.log("✅ Utilisateur authentifié:", username);
+    return true;
+}
+
+// === Exécuter la vérification AU DÉMARRAGE ===
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("🚀 Chargement de la page:", window.location.pathname);
+    
+    // Vérifier l'authentification immédiatement
+    checkAuthentication();
+    
+    // Pour le dashboard, charger les données
+    if (document.querySelector(".dashboard")) {
+        console.log("📊 Page Dashboard détectée");
+        setTimeout(function() {
+            if (typeof loadDashboardData === 'function') {
+                loadDashboardData();
+            }
+        }, 500);
+    }
+    
+    // Pour les autres pages, initialiser normalement
+    if (typeof initializePage === 'function') {
+        setTimeout(initializePage, 300);
+    }
+});
+
+// === Modifier la sécurité renforcée dans script.js ===
+// REMPLACEZ la section existante qui commence par :
+// "// Sécurité renforcée"
+// AVEC ceci :
+
+// Sécurité renforcée - VERSION CORRIGÉE
+(function checkSecurityOnLoad() {
+    // Attendre que le DOM soit chargé
+    setTimeout(function() {
+        // Ne PAS exécuter sur la page d'index/login
+        if (window.location.pathname.includes("index.html") || 
+            window.location.pathname.endsWith("/")) {
+            console.log("🔓 Page de login - sécurité désactivée");
+            return;
+        }
+        
+        // Vérifier l'authentification
+        const isAuthenticated = localStorage.getItem("loggedIn") === "true";
+        const currentPage = window.location.pathname;
+        
+        console.log("🔐 Vérification de sécurité:", {
+            page: currentPage,
+            authentifié: isAuthenticated,
+            loggedIn: localStorage.getItem("loggedIn")
+        });
+        
+        if (!isAuthenticated) {
+            console.warn("🚫 Accès non autorisé, redirection vers index.html");
+            window.location.href = "index.html";
+        } else {
+            console.log("✅ Accès autorisé");
+        }
+    }, 100);
+})();
 
 function logout() {
     localStorage.removeItem("loggedIn");
@@ -2705,4 +2835,5 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 });
+
 
