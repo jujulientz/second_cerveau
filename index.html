@@ -1,37 +1,46 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Connexion</title>
-  <link rel="stylesheet" href="style.css">
-  <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDxC--WywLZ13NZdiouncGLb8SaE-3GggQ",
+            authDomain: "site-perso-b7c08.firebaseapp.com",
+            projectId: "site-perso-b7c08",
+            storageBucket: "site-perso-b7c08.firebasestorage.app",
+            messagingSenderId: "1015317206704",
+            appId: "1:1015317206704:web:19e1d3762bda8a7cf78d75",
+            measurementId: "G-MMLMV2DPNT"
+        };
+        
+        // Initialiser Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+    </script>
 </head>
 <body class="login-page">
-  <div class="login-box">
-    <h2>Connexion</h2>
-    
-    <input type="text" id="username" placeholder="Identifiant" value="touzeauj">
-    
-    <!-- SUPPRIMER le conteneur password et le bouton œil -->
-    <input type="password" id="password" placeholder="Mot de passe">
-    
-    <button onclick="login()">Se connecter</button>
-    <p id="error"></p>
-  </div>
+    <div class="login-container">
+        <div class="login-card">
+            <h1>🔐 Connexion</h1>
+            <div class="login-form">
+                <input type="text" id="username" placeholder="Identifiant" value="touzeauj">
+                <input type="password" id="password" placeholder="Mot de passe" value="Glowup2025!">
+                <button onclick="login()" class="login-btn">Se connecter</button>
+                <p id="error" class="error"></p>
+            </div>
+        </div>
+    </div>
 
-  <script>
-    // SUPPRIMER la fonction togglePassword complètement
-    
-    // Entrée pour valider avec la touche Enter
-    document.getElementById('password').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        login();
-      }
-    });
-  </script>
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
